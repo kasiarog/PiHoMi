@@ -37,7 +37,8 @@ devices_titles = ["CLOCK", "IRRIGATION", "OUTLETS"]
 active_devices = [0, 0, 1]
 active_sockets = [1, 1, 0, 1]
 water_parameters = [0, 0]  # [frequency of watering, water volume]
-water_frequency_titles = [['4 razy dziennie', 0.25], ['2 razy dziennie', 0.5], ['1 raz dziennie', 1], ['Co 2 dni', 2], ['Co 4 dni', 4], ['Co tydzień', 7], ['Co 2 tygodnie', 14]]
+water_frequency_titles = [['4 times a day', 0.25], ['2 times a day', 0.5], ['1 time a day', 1], ['every 2 days', 2],
+                          ['every 4 days', 4], ['every week', 7], ['every 2 weeks', 14]]
 water_volumes = [20, 50, 100, 150, 200, 250, 500]
 water_level = 5
 initial_water_level = 0
@@ -117,21 +118,22 @@ def make_gui():
                 image=draw_image_icon[i]
             )
 
-            canvas.create_text(
+            text = canvas.create_text(
                 x_reference[0] + padding + 62, y_reference[0] + i * height_device + i * padding + gap_after_text + 23,
                 anchor="nw",
                 text=devices_titles[i],
                 fill=semi_light if active_devices[i] == 1 else semi_semi_light,
                 font=tkFont.Font(family='Inter', size=13, weight='bold')
             )
+
             draw_image_checkbox.append(PhotoImage(
                 file=relative_to_assets("checkbox-yes15x15.png" if active_devices[i] == 1 else "checkbox-no15x15.png")))
             canvas.create_image(
                 x_reference[0] + padding + 225, y_reference[0] + gap_after_text + i * height_device + i * padding + 30,
                 image=draw_image_checkbox[i]
             )
-
             canvas.tag_bind(rectangle, '<Button-1>', on_button_click)
+            canvas.tag_bind(text, '<Button-1>', on_button_click)
 
     # SOCKETS
     def draw_sockets(x_reference, y_reference, padding, active_sockets, draw_image_socket):
@@ -220,9 +222,9 @@ def make_gui():
             water_parameters[0] = freq
             update_window()
 
-        def change_volume(volume):
+        def change_volume(v):
             global water_parameters
-            water_parameters[1] = volume
+            water_parameters[1] = v
             update_window()
 
         def popup(e):
