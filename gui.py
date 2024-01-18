@@ -27,14 +27,15 @@ devices_titles = ["CLOCK", "IRRIGATION", "OUTLETS"]
 active_devices = [0, 0, 1]
 active_sockets = [1, 1, 0, 1]
 water_parameters = [0, 0]  # [frequency of watering, water volume]
-water_frequency_titles = ['4 razy dziennie', '2 razy dziennie', '1 raz dziennie', 'Co 2 dni', 'Co 4 dni', 'Co tydzień', 'Co 2 tygodnie']
-water_volumes= [20, 50, 100, 150, 200, 250, 500]
+water_frequency_titles = [['4 razy dziennie', 0.25], ['2 razy dziennie', 0.5], ['1 raz dziennie', 1], ['Co 2 dni', 2], ['Co 4 dni', 4], ['Co tydzień', 7], ['Co 2 tygodnie', 14]]
+water_volumes = [20, 50, 100, 150, 200, 250, 500]
 water_level = 5
 initial_water_level = 0
 
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
+
 
 # LOGO
 def draw_logo(image_home):
@@ -217,8 +218,8 @@ def draw_irrigation(x_reference, y_reference, padding, sockets_height, water_lev
     menu = Menu(window, tearoff=False)
     menu.add_command(label="Irrigation frequency", state="disabled", activebackground=menu.cget("background"))
     menu.add_separator()
-    for i in range(1, len(water_frequency_titles)):
-        menu.add_command(label=str(water_frequency_titles[i]), command=lambda freq=i: change_frequency(freq))
+    for frequency in water_frequency_titles:
+        menu.add_command(label=str(frequency[0]), command=lambda freq=frequency[1]: change_frequency(freq))
     menu.add_separator()
 
     menu.add_command(label="Water volume", state="disabled", activebackground=menu.cget("background"))
@@ -257,8 +258,6 @@ def draw_clock(x_reference, y_reference, padding, irrigation_width, sockets_heig
         lbl.config(text=string)
         lbl.after(1000, time)
 
-    # Styling the label widget so that the clock
-    # will look more attractive
     lbl = Label(window, font=('calibri', 40, 'bold'),
                 background=semi_dark,
                 foreground=semi_light)
@@ -270,7 +269,7 @@ def draw_clock(x_reference, y_reference, padding, irrigation_width, sockets_heig
 
 def update_window():
     global active_devices, active_sockets, water_level, draw_image_icon, draw_image_checkbox, draw_image_socket
-    water_level = (water_level - 1) % 8 # Increment water_level in the range of 0 to 7
+    # water_level = (water_level - 1) % 8 # Increment water_level in the range of 0 to 7
 
     draw_image_icon = []
     draw_image_checkbox = []
