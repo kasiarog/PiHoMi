@@ -27,9 +27,9 @@ devices_titles = ["CLOCK", "IRRIGATION", "OUTLETS"]
 active_devices = [0, 0, 1]
 active_sockets = [1, 1, 0, 1]
 water_parameters = [0, 0]  # [frequency of watering, water volume]
+water_frequency_titles = ['4 razy dziennie', '2 razy dziennie', '1 raz dziennie', 'Co 2 dni', 'Co 4 dni', 'Co tydzień', 'Co 2 tygodnie']
+water_volumes= [20, 50, 100, 150, 200, 250, 500]
 water_level = 5
-initial_zero = 0
-initial_one = 1
 initial_water_level = 0
 
 
@@ -217,25 +217,22 @@ def draw_irrigation(x_reference, y_reference, padding, sockets_height, water_lev
     menu = Menu(window, tearoff=False)
     menu.add_command(label="Irrigation frequency", state="disabled", activebackground=menu.cget("background"))
     menu.add_separator()
-    for i in range(1, 7):
-        menu.add_command(label=str(i), command=lambda freq=i: change_frequency(freq))
+    for i in range(1, len(water_frequency_titles)):
+        menu.add_command(label=str(water_frequency_titles[i]), command=lambda freq=i: change_frequency(freq))
     menu.add_separator()
 
     menu.add_command(label="Water volume", state="disabled", activebackground=menu.cget("background"))
     menu.add_separator()
-    for i in range(1, 7):
-        menu.add_command(label=str(i), command=lambda freq=i: change_volume(freq))
-
-    menu.add_separator()
-    menu.add_command(label="Exit", command=window.quit)
+    for volume in water_volumes:
+        menu.add_command(label=str(volume)+'ml', command=lambda freq=volume: change_volume(freq))
 
     canvas.tag_bind(bg_rectangle, "<Button-3>", popup)
     canvas.tag_bind(text1, "<Button-3>", popup)
     canvas.tag_bind(text2, "<Button-3>", popup)
     canvas.tag_bind(container_rectangle, "<Button-3>", popup)
     canvas.tag_bind(water_rectangle, "<Button-3>", popup)
-    return irrigation_width
 
+    return irrigation_width
 
 
 # CLOCK
@@ -285,7 +282,7 @@ def update_window():
     draw_clock(x_devices, y_devices, padding, irrigation_width, sockets_height)
     # window.after(1000, update_window)
 
-    print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
+    # print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
     # print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
 
 
