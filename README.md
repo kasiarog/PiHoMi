@@ -1,6 +1,14 @@
 # PiHoMi
 ********Projekt mini Smart Home********
 
-Projekt pozwala na zdalne zarządzanie stacji podlewającej rośliny doncizkowe, zegarem połączonym z czasem internetowym oraz zestawem gniazdek elektrycznyh
+******Cel projektu******
+Celem projektu jest realizacja systemu inteligentnego domu, składającego się z inteligentnego lustra, które bedzie pełniło funkcję dashboarda systemu, urządzenia do automatycznego podlewania roślin, dużego zegara naściennego zsynchornizowanego z czasem internetowym, oraz gniazdek, które umożliwią podłączenie i zdalne sterowanie dowolnymi urządzeniami, takimi jak lampy, grzejniki, urządzenia kuchenne, itd.
 
-******1. Cel projektu******
+******Wykorzystane urządzenia******
+ - Raspberry Pi 4B
+ - Arduino Uno
+ - zegar produkcji własnej
+ - czujnik poziomu wody produkcji własnej
+ - pompa
+ - moduł przekaźników elektromagnetycznych
+ - gniazda elektryczne
