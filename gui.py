@@ -1,6 +1,6 @@
 from pathlib import Path
 from tkinter import *
-from tkinter.ttk import *
+# from tkinter.ttk import *
 import tkinter.font as tkFont
 from time import strftime
 
@@ -17,18 +17,19 @@ semi_light = '#a8a8a8'
 semi_semi_light = '#595959'
 blue = '#397791'
 
+# CONSTANTS
 x_devices = [50, 350]
 y_devices = [150, 650]
 padding = 25
 devices_titles = ["CLOCK", "IRRIGATION", "SOCKETS"]
 
+# VARIABLES
 active_devices = [0, 0, 1]
 active_sockets = [1, 1, 0, 1]
 water_level = 5
 initial_zero = 0
 initial_one = 1
 initial_water_level = 0
-
 
 
 def relative_to_assets(path: str) -> Path:
@@ -55,6 +56,10 @@ def draw_logo(image_home):
 
 # DEVICES
 def draw_devices(x_reference, y_reference, padding, devices_titles, active_devices, draw_image_icon, draw_image_checkbox):
+    def toggle_device(index):
+        active_devices[index] = 1 - active_devices[index]
+        update_window()
+
     canvas.create_rectangle(
         x_reference[0], y_reference[0],
         x_reference[1], y_reference[1],
@@ -77,12 +82,17 @@ def draw_devices(x_reference, y_reference, padding, devices_titles, active_devic
     icon_image_disabled_files = ["clock-dark25x25.png", "water-dark30x30.png", "socket-dark-light-bcg30x30.png"]
 
     for i in range(3):
-        canvas.create_rectangle(
+        def on_button_click(event, index=i):
+            toggle_device(index)
+
+        rectangle = canvas.create_rectangle(
             x_reference[0] + padding, y_reference[0] + gap_after_text + i * height_device + i * padding,
             x_reference[1] - padding, y_reference[0] + gap_after_text + (i+1) * height_device + i * padding,
             fill=semi_semi_dark,
-            outline=""
+            outline="",
+            activefill=dark
         )
+
         draw_image_icon.append(PhotoImage(
             file=relative_to_assets(icon_image_files[i] if active_devices[i] == 1 else icon_image_disabled_files[i])))
         canvas.create_image(
@@ -104,9 +114,15 @@ def draw_devices(x_reference, y_reference, padding, devices_titles, active_devic
             image=draw_image_checkbox[i]
         )
 
+        canvas.tag_bind(rectangle, '<Button-1>', on_button_click)
+
 
 # SOCKETS
 def draw_sockets(x_reference, y_reference, padding, active_sockets):
+    def toggle_sockets(index):
+        active_sockets[index] = 1 - active_sockets[index]
+        update_window()
+
     sockets_height = 200
     canvas.create_rectangle(
         x_reference[1] + 2 * padding, y_reference[0],
@@ -125,20 +141,25 @@ def draw_sockets(x_reference, y_reference, padding, active_sockets):
     )
 
     for i in range(4):
+        def on_button_click(event, index=i):
+            toggle_sockets(index)
+
         draw_image_socket.append(PhotoImage(
             file=relative_to_assets("socket-light75x75.png" if active_sockets[i] == 1 else "socket-dark75x75.png")))
-        canvas.create_image(
+        image = canvas.create_image(
             x_reference[1] + i * (padding-10) + i * 90 + 140, y_reference[0] + 4*padding + 20,
             image=draw_image_socket[i]
         )
+        canvas.tag_bind(image, '<Button-1>', on_button_click)
 
-        canvas.create_text(
+        text = canvas.create_text(
             x_reference[1] + i * (padding-10) + i * 90 + 107, y_reference[0] + 4*padding + 55,
             anchor="nw",
             text="{i}. enabled".format(i=i+1) if active_sockets[i] == 1 else "{i}. disabled".format(i=i+1),
             fill=semi_light if active_sockets[i] == 1 else semi_semi_light,
             font=tkFont.Font(family='Inter', size=10, weight='bold')
         )
+        canvas.tag_bind(text, '<Button-1>', on_button_click)
 
     return sockets_height
 
@@ -215,61 +236,22 @@ def draw_clock(x_reference, y_reference, padding, irrigation_width, sockets_heig
     time()
 
 
-# def update_window():
-#     # Update devices section
-#     for i in range(3):
-#         draw_image_icon[i] = PhotoImage(
-#             file=relative_to_assets("clock-light25x25.png" if active_devices[i] == 1 else "clock-dark25x25.png"))
-#         canvas.itemconfig(draw_image_icon[i], image=draw_image_icon[i])
-#
-#         draw_image_checkbox[i] = PhotoImage(
-#             file=relative_to_assets("checkbox-yes15x15.png" if active_devices[i] == 1 else "checkbox-no15x15.png"))
-#         canvas.itemconfig(draw_image_checkbox[i], image=draw_image_checkbox[i])
-#
-#     # Update sockets section
-#     canvas.delete("sockets")
-#     draw_sockets(x_devices, y_devices, padding, sockets_height, water_level)
-#     # for i in range(4):
-#     #     draw_image_socket[i] = PhotoImage(
-#     #         file=relative_to_assets("socket-light75x75.png" if active_sockets[i] == 1 else "socket-dark75x75.png"))
-#     #     canvas.itemconfig(draw_image_socket[i], image=draw_image_socket[i])
-#
-#     # Update irrigation section
-#     canvas.delete("irrigation")
-#     draw_irrigation(x_devices, y_devices, padding, sockets_height, water_level)
-#
-#     # Schedule the update after a delay
-#     window.after(1000, update_window)
-
-
 def update_window():
     global active_devices, active_sockets, water_level, draw_image_icon, draw_image_checkbox, draw_image_socket
-
-    # Toggle active_devices between 0s and 1s
-    active_devices = [1 - value for value in active_devices]
-
-    # Toggle active_sockets between 0s and 1s
-    active_sockets = [1 - value for value in active_sockets]
-
-    # Increment water_level in the range of 0 to 7
-    water_level = (water_level - 1) % 8
+    water_level = (water_level - 1) % 8 # Increment water_level in the range of 0 to 7
 
     draw_image_icon = []
     draw_image_checkbox = []
     draw_image_socket = []
 
-
     draw_devices(x_devices, y_devices, padding, devices_titles, active_devices, draw_image_icon, draw_image_checkbox)
     sockets_height = draw_sockets(x_devices, y_devices, padding, active_sockets)
     irrigation_width = draw_irrigation(x_devices, y_devices, padding, sockets_height, water_level)
     draw_clock(x_devices, y_devices, padding, irrigation_width, sockets_height)
-    window.after(1000, update_window)
-    # print(active_devices, '\n', active_sockets, '\n', water_level, '\n\n')
+    # window.after(1000, update_window)
 
+    # print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
 
-active_devices = [0,0,1]
-active_sockets = [1,1,0,1]
-water_level = 5
 
 draw_image_icon = []
 draw_image_checkbox = []
