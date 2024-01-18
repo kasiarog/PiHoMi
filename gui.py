@@ -5,7 +5,7 @@ import tkinter.font as tkFont
 from time import strftime
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r".\assets")
+ASSETS_PATH = OUTPUT_PATH / Path(r"assets")
 
 # COLORS
 dark = '#121212'
@@ -21,11 +21,12 @@ blue = '#397791'
 x_devices = [50, 350]
 y_devices = [150, 650]
 padding = 25
-devices_titles = ["CLOCK", "IRRIGATION", "SOCKETS"]
+devices_titles = ["CLOCK", "IRRIGATION", "OUTLETS"]
 
 # VARIABLES
 active_devices = [0, 0, 1]
 active_sockets = [1, 1, 0, 1]
+water_parameters = [0, 0]  # [frequency of watering, water volume]
 water_level = 5
 initial_zero = 0
 initial_one = 1
@@ -134,7 +135,7 @@ def draw_sockets(x_reference, y_reference, padding, active_sockets):
     canvas.create_text(
         x_reference[1] + 100, y_reference[0] + padding,
         anchor="nw",
-        text="Sockets",
+        text="Outlets",
         fill=light,
         font=tkFont.Font(family='Inter',
                          size=30, weight='bold')
@@ -166,20 +167,20 @@ def draw_sockets(x_reference, y_reference, padding, active_sockets):
 # IRIGATION
 def draw_irrigation(x_reference, y_reference, padding, sockets_height, water_level=1):
     irrigation_width = 200
-    canvas.create_rectangle(
+    bg_rectangle = canvas.create_rectangle(
         x_reference[1] + 2 * padding, y_reference[0] + sockets_height + padding,
         x_reference[1] + 2 * padding + irrigation_width, y_reference[1],
         fill=semi_dark,
         outline=""
     )
-    canvas.create_text(
+    text1 = canvas.create_text(
         x_reference[1] + 2 * padding + 30, y_reference[0] + sockets_height + padding + 20,
         anchor="nw",
         text="Water level",
         fill=semi_light,
         font=tkFont.Font(family='Inter', size=15, weight='bold')
     )
-    canvas.create_text(
+    text2 = canvas.create_text(
         x_reference[1] + 2 * padding + 30, y_reference[0] + sockets_height + padding + 40,
         anchor="nw",
         text="irrigation",
@@ -187,20 +188,54 @@ def draw_irrigation(x_reference, y_reference, padding, sockets_height, water_lev
         font=tkFont.Font(family='Inter', size=10, weight='bold')
     )
 
-    canvas.create_rectangle(
+    container_rectangle = canvas.create_rectangle(
         x_reference[1] + 2 * padding + 75, y_reference[0] + sockets_height + padding + 75,
         x_reference[1] + 2 * padding + irrigation_width - 75, y_reference[1] - 125,
         fill=semi_semi_dark,
         outline=""
     )
-    canvas.create_rectangle(
+    water_rectangle = canvas.create_rectangle(
         x_reference[1] + 2 * padding + 75, y_reference[0] + sockets_height + padding + 75 + (7 - water_level) * 10,
         x_reference[1] + 2 * padding + irrigation_width - 75, y_reference[1] - 125,
         fill=blue,
         outline=""
     )
 
+    def change_frequency(freq):
+        global water_parameters
+        water_parameters[0] = freq
+        update_window()
+
+    def change_volume(volume):
+        global water_parameters
+        water_parameters[1] = volume
+        update_window()
+
+    def popup(e):
+        menu.tk_popup(e.x_root, e.y_root)
+
+    menu = Menu(window, tearoff=False)
+    menu.add_command(label="Irrigation frequency", state="disabled", activebackground=menu.cget("background"))
+    menu.add_separator()
+    for i in range(1, 7):
+        menu.add_command(label=str(i), command=lambda freq=i: change_frequency(freq))
+    menu.add_separator()
+
+    menu.add_command(label="Water volume", state="disabled", activebackground=menu.cget("background"))
+    menu.add_separator()
+    for i in range(1, 7):
+        menu.add_command(label=str(i), command=lambda freq=i: change_volume(freq))
+
+    menu.add_separator()
+    menu.add_command(label="Exit", command=window.quit)
+
+    canvas.tag_bind(bg_rectangle, "<Button-3>", popup)
+    canvas.tag_bind(text1, "<Button-3>", popup)
+    canvas.tag_bind(text2, "<Button-3>", popup)
+    canvas.tag_bind(container_rectangle, "<Button-3>", popup)
+    canvas.tag_bind(water_rectangle, "<Button-3>", popup)
     return irrigation_width
+
 
 
 # CLOCK
@@ -250,6 +285,7 @@ def update_window():
     draw_clock(x_devices, y_devices, padding, irrigation_width, sockets_height)
     # window.after(1000, update_window)
 
+    print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
     # print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
 
 
@@ -258,6 +294,7 @@ draw_image_checkbox = []
 draw_image_socket = []
 
 window = Tk()
+window.title('PiHoMi')
 window.geometry("950x625")
 window.configure(bg=dark)
 window_size = [950, 625]
@@ -274,7 +311,7 @@ canvas = Canvas(
 
 image_home = PhotoImage(file=relative_to_assets("home.png"))
 draw_logo(image_home)
-window.resizable(False, False)
 
+window.resizable(False, False)
 update_window()
 window.mainloop()
