@@ -3,7 +3,7 @@ from tkinter import *
 from mttkinter import mtTkinter
 import tkinter.font as tkFont
 from time import strftime
-import time
+# import time
 from socket import *
 import threading
 import sys
@@ -34,14 +34,14 @@ padding = 25
 devices_titles = ["CLOCK", "IRRIGATION", "OUTLETS"]
 
 # SYSTEM VARIABLES
-active_devices = [0, 0, 1]
-active_sockets = [1, 1, 0, 1]
+active_devices = [0, 0, 0]
+active_sockets = [0, 0, 0, 0]
 water_parameters = [0, 0]  # [frequency of watering, water volume]
 water_frequency_titles = [['4 times a day', 0.25], ['2 times a day', 0.5], ['1 time a day', 1], ['every 2 days', 2],
                           ['every 4 days', 4], ['every week', 7], ['every 2 weeks', 14]]
 water_volumes = [20, 50, 100, 150, 200, 250, 500]
 water_level = 5
-initial_water_level = 0
+parameter_change = ''  # string który w formacie 'x1' przechowuje zmianę wartości parametru (np. gdy włączamy gniazdko 4 to parameter_change = 's4'
 
 
 def relative_to_assets(path: str) -> Path:
@@ -75,10 +75,6 @@ def make_gui():
 
     # DEVICES
     def draw_devices(x_reference, y_reference, padding, devices_titles, active_devices, draw_image_icon, draw_image_checkbox):
-        def toggle_device(index):
-            active_devices[index] = 1 - active_devices[index]
-            update_window()
-
         canvas.create_rectangle(
             x_reference[0], y_reference[0],
             x_reference[1], y_reference[1],
@@ -101,7 +97,10 @@ def make_gui():
 
         for i in range(3):
             def on_button_click(event, index=i):
-                toggle_device(index)
+                global parameter_change
+                parameter_change = ''
+                parameter_change = "{device}".format(device=devices_titles[index][0].lower())
+                update_window()
 
             rectangle = canvas.create_rectangle(
                 x_reference[0] + padding, y_reference[0] + gap_after_text + i * height_device + i * padding,
@@ -137,10 +136,6 @@ def make_gui():
 
     # SOCKETS
     def draw_sockets(x_reference, y_reference, padding, active_sockets, draw_image_socket):
-        def toggle_sockets(index):
-            active_sockets[index] = 1 - active_sockets[index]
-            update_window()
-
         sockets_height = 200
         canvas.create_rectangle(
             x_reference[1] + 2 * padding, y_reference[0],
@@ -159,7 +154,10 @@ def make_gui():
 
         for i in range(4):
             def on_button_click(event, index=i):
-                toggle_sockets(index)
+                global parameter_change
+                parameter_change = ''
+                parameter_change = "o{socket_num}".format(socket_num=index + 1)
+                update_window()
 
             draw_image_socket.append(PhotoImage(
                 file=relative_to_assets("socket-light75x75.png" if active_sockets[i] == 1 else "socket-dark75x75.png")))
@@ -218,13 +216,17 @@ def make_gui():
         )
 
         def change_frequency(freq):
-            global water_parameters
+            global water_parameters, parameter_change
             water_parameters[0] = freq
+            parameter_change = ''
+            parameter_change = "f{frequency_value}".format(frequency_value=freq)
             update_window()
 
         def change_volume(v):
-            global water_parameters
+            global water_parameters, parameter_change
             water_parameters[1] = v
+            parameter_change = ''
+            parameter_change = "v{volume_value}".format(volume_value=v)
             update_window()
 
         def popup(e):
@@ -282,7 +284,6 @@ def make_gui():
 
     def update_window():
         global active_devices, active_sockets, water_level, draw_image_icon, draw_image_checkbox, draw_image_socket
-        # water_level = (water_level - 1) % 8 # Increment water_level in the range of 0 to 7
 
         draw_image_icon = []
         draw_image_checkbox = []
@@ -332,20 +333,23 @@ def server_connection():
 
                 data = str(server.recv(BUFF_SIZE))
 
-                # update data received from server
-                parts = data.decode('utf-8')
-                if len(parts) == 8:
+                # update devices state received from server
+                parts = data.decode('utf-8').split(';')
+                if len(parts) == 10:
                     for i_device in range(len(active_devices)):
-                        active_devices[i_device] = int(data[i_device])
+                        active_devices[i_device] = int(parts[i_device])
                     for i_socket in range(len(active_devices), len(active_sockets) + len(active_devices)):
-                        active_sockets[i_socket] = int(data[i_socket])
-                    water_level = int(data[-1])
+                        active_sockets[i_socket] = int(parts[i_socket])
+                    water_level = int(parts[len(active_sockets) + len(active_devices)])
+                    water_parameters[0] = int(parts[len(active_sockets) + len(active_devices)])
+                    water_parameters[1] = int(parts[-1])
                 else:
                     print("Invalid data format received from the server.")
 
-                # update water_parameters to server
-                data_to_send = "{value1};{value2}".format(value1=water_parameters[0], value2=water_parameters[1])
+                # update changes made by user to server
+                data_to_send = parameter_change
                 server.send(data_to_send.encode('utf-8'))
+                # parameter_change = ''
 
         except Exception as e:
             print(f"Error: {e}")
@@ -354,10 +358,11 @@ def server_connection():
             server.close()
 
         # TESTING
-        time.sleep(2)
-        print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
-        print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
-        print('Water parameters: ', water_parameters)
+        # time.sleep(0.1)
+        # print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
+        # print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
+        # print('Water parameters: ', water_parameters)
+        print(parameter_change)
 
 
 stop_event = threading.Event()
