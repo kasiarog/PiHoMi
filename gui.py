@@ -13,8 +13,8 @@ ASSETS_PATH = OUTPUT_PATH / Path(r"assets")
 
 # NETWORK CONNECTION
 PORT = 3141
-HOST = "localhost"
-BUFF_SIZE = 1024
+HOST = "192.168.1.73"
+BUFF_SIZE = 64
 ADDRESS = (HOST, PORT)
 
 # INTERFACE COLORS
@@ -35,12 +35,12 @@ devices_titles = ["CLOCK", "IRRIGATION", "OUTLETS"]
 
 # SYSTEM VARIABLES
 active_devices = [0, 0, 0]
-active_sockets = [0, 0, 0, 0]
+active_outlets = [0, 0, 0, 0]
+water_level = 5
 water_parameters = [0, 0]  # [frequency of watering, water volume]
 water_frequency_titles = [['4 times a day', 0.25], ['2 times a day', 0.5], ['1 time a day', 1], ['every 2 days', 2],
                           ['every 4 days', 4], ['every week', 7], ['every 2 weeks', 14]]
 water_volumes = [20, 50, 100, 150, 200, 250, 500]
-water_level = 5
 parameter_change = ''  # string który w formacie 'x1' przechowuje zmianę wartości parametru (np. gdy włączamy gniazdko 4 to parameter_change = 's4'
 
 
@@ -134,12 +134,12 @@ def make_gui():
             canvas.tag_bind(rectangle, '<Button-1>', on_button_click)
             canvas.tag_bind(text, '<Button-1>', on_button_click)
 
-    # SOCKETS
-    def draw_sockets(x_reference, y_reference, padding, active_sockets, draw_image_socket):
-        sockets_height = 200
+    # OUTLETS
+    def draw_outlets(x_reference, y_reference, padding, active_outlets, draw_image_outlet):
+        outlets_height = 200
         canvas.create_rectangle(
             x_reference[1] + 2 * padding, y_reference[0],
-            window_size[0] - 2 * padding, y_reference[0] + sockets_height,
+            window_size[0] - 2 * padding, y_reference[0] + outlets_height,
             fill=semi_dark,
             outline=""
         )
@@ -156,46 +156,46 @@ def make_gui():
             def on_button_click(event, index=i):
                 global parameter_change
                 parameter_change = ''
-                parameter_change = "o{socket_num}".format(socket_num=index + 1)
+                parameter_change = "o{outlet_num}".format(outlet_num=index + 1)
                 update_window()
 
-            draw_image_socket.append(PhotoImage(
-                file=relative_to_assets("socket-light75x75.png" if active_sockets[i] == 1 else "socket-dark75x75.png")))
+            draw_image_outlet.append(PhotoImage(
+                file=relative_to_assets("socket-light75x75.png" if active_outlets[i] == 1 else "socket-dark75x75.png")))
             image = canvas.create_image(
                 x_reference[1] + i * (padding-10) + i * 90 + 140, y_reference[0] + 4*padding + 20,
-                image=draw_image_socket[i]
+                image=draw_image_outlet[i]
             )
             canvas.tag_bind(image, '<Button-1>', on_button_click)
 
             text = canvas.create_text(
                 x_reference[1] + i * (padding-10) + i * 90 + 107, y_reference[0] + 4*padding + 55,
                 anchor="nw",
-                text="{i}. enabled".format(i=i+1) if active_sockets[i] == 1 else "{i}. disabled".format(i=i+1),
-                fill=semi_light if active_sockets[i] == 1 else semi_semi_light,
+                text="{i}. enabled".format(i=i+1) if active_outlets[i] == 1 else "{i}. disabled".format(i=i+1),
+                fill=semi_light if active_outlets[i] == 1 else semi_semi_light,
                 font=tkFont.Font(family='Inter', size=10, weight='bold')
             )
             canvas.tag_bind(text, '<Button-1>', on_button_click)
 
-        return sockets_height
+        return outlets_height
 
     # IRRIGATION
-    def draw_irrigation(x_reference, y_reference, padding, sockets_height, water_level=1):
+    def draw_irrigation(x_reference, y_reference, padding, outlets_height, water_level=1):
         irrigation_width = 200
         bg_rectangle = canvas.create_rectangle(
-            x_reference[1] + 2 * padding, y_reference[0] + sockets_height + padding,
+            x_reference[1] + 2 * padding, y_reference[0] + outlets_height + padding,
             x_reference[1] + 2 * padding + irrigation_width, y_reference[1],
             fill=semi_dark,
             outline=""
         )
         text1 = canvas.create_text(
-            x_reference[1] + 2 * padding + 30, y_reference[0] + sockets_height + padding + 20,
+            x_reference[1] + 2 * padding + 30, y_reference[0] + outlets_height + padding + 20,
             anchor="nw",
             text="Water level",
             fill=semi_light,
             font=tkFont.Font(family='Inter', size=15, weight='bold')
         )
         text2 = canvas.create_text(
-            x_reference[1] + 2 * padding + 30, y_reference[0] + sockets_height + padding + 40,
+            x_reference[1] + 2 * padding + 30, y_reference[0] + outlets_height + padding + 40,
             anchor="nw",
             text="irrigation",
             fill=semi_semi_light,
@@ -203,13 +203,13 @@ def make_gui():
         )
 
         container_rectangle = canvas.create_rectangle(
-            x_reference[1] + 2 * padding + 75, y_reference[0] + sockets_height + padding + 75,
+            x_reference[1] + 2 * padding + 75, y_reference[0] + outlets_height + padding + 75,
             x_reference[1] + 2 * padding + irrigation_width - 75, y_reference[1] - 125,
             fill=semi_semi_dark,
             outline=""
         )
         water_rectangle = canvas.create_rectangle(
-            x_reference[1] + 2 * padding + 75, y_reference[0] + sockets_height + padding + 75 + (7 - water_level) * 10,
+            x_reference[1] + 2 * padding + 75, y_reference[0] + outlets_height + padding + 75 + (7 - water_level) * 10,
             x_reference[1] + 2 * padding + irrigation_width - 75, y_reference[1] - 125,
             fill=blue,
             outline=""
@@ -253,15 +253,15 @@ def make_gui():
         return irrigation_width
 
     # CLOCK
-    def draw_clock(x_reference, y_reference, padding, irrigation_width, sockets_height):
+    def draw_clock(x_reference, y_reference, padding, irrigation_width, outlets_height):
         canvas.create_rectangle(
-            x_reference[1] + 3 * padding + irrigation_width, y_reference[0] + sockets_height + padding,
+            x_reference[1] + 3 * padding + irrigation_width, y_reference[0] + outlets_height + padding,
             window_size[0] - 2 * padding, y_reference[1],
             fill=semi_dark,
             outline=""
         )
         canvas.create_text(
-            x_reference[1] + 3 * padding + irrigation_width + padding, y_reference[0] + sockets_height + padding + 20,
+            x_reference[1] + 3 * padding + irrigation_width + padding, y_reference[0] + outlets_height + padding + 20,
             anchor="nw",
             text="Clock",
             fill=light,
@@ -279,24 +279,24 @@ def make_gui():
                     foreground=semi_light)
 
         lbl.place(x=x_reference[1] + 3 * padding + irrigation_width + 3 * padding,
-                  y=y_reference[0] + sockets_height + 3 * padding + 20)
+                  y=y_reference[0] + outlets_height + 3 * padding + 20)
         time()
 
     def update_window():
-        global active_devices, active_sockets, water_level, draw_image_icon, draw_image_checkbox, draw_image_socket
+        global active_devices, active_outlets, water_level, draw_image_icon, draw_image_checkbox, draw_image_outlet
 
         draw_image_icon = []
         draw_image_checkbox = []
-        draw_image_socket = []
+        draw_image_outlet = []
 
         draw_devices(x_devices, y_devices, padding, devices_titles, active_devices, draw_image_icon, draw_image_checkbox)
-        sockets_height = draw_sockets(x_devices, y_devices, padding, active_sockets, draw_image_socket)
-        irrigation_width = draw_irrigation(x_devices, y_devices, padding, sockets_height, water_level)
-        draw_clock(x_devices, y_devices, padding, irrigation_width, sockets_height)
+        outlets_height = draw_outlets(x_devices, y_devices, padding, active_outlets, draw_image_outlet)
+        irrigation_width = draw_irrigation(x_devices, y_devices, padding, outlets_height, water_level)
+        draw_clock(x_devices, y_devices, padding, irrigation_width, outlets_height)
 
     draw_image_icon = []
     draw_image_checkbox = []
-    draw_image_socket = []
+    draw_image_outlet = []
 
     window = mtTkinter.Tk()
     window.protocol("WM_DELETE_WINDOW", on_closing)  # closing the window stops a thread for GUI
@@ -324,45 +324,43 @@ def make_gui():
 
 
 def server_connection():
-    global active_devices, active_sockets, water_level, water_parameters
+    global active_devices, active_outlets, water_level, water_parameters, parameter_change
+
+    try:
+        server: socket = socket(AF_INET, SOCK_STREAM)
+        server.connect(ADDRESS)
+    except Exception as e:
+        print(f"Error: {e}")
+        thread_socket.join()
+        exit(1)
 
     while not stop_event.is_set():
         try:
-            with socket(AF_INET, SOCK_STREAM) as server:
-                server.connect(ADDRESS)
-
-                data = str(server.recv(BUFF_SIZE))
-
-                # update devices state received from server
-                parts = data.decode('utf-8').split(';')
-                if len(parts) == 10:
-                    for i_device in range(len(active_devices)):
-                        active_devices[i_device] = int(parts[i_device])
-                    for i_socket in range(len(active_devices), len(active_sockets) + len(active_devices)):
-                        active_sockets[i_socket] = int(parts[i_socket])
-                    water_level = int(parts[len(active_sockets) + len(active_devices)])
-                    water_parameters[0] = int(parts[len(active_sockets) + len(active_devices)])
-                    water_parameters[1] = int(parts[-1])
-                else:
-                    print("Invalid data format received from the server.")
-
-                # update changes made by user to server
-                data_to_send = parameter_change
+            # update changes made by user to server
+            if len(parameter_change) != 0:
+                data_to_send = parameter_change + '\n'
                 server.send(data_to_send.encode('utf-8'))
-                # parameter_change = ''
+                print(parameter_change)
+                parameter_change = ''
+
+                received_data = server.recv(BUFF_SIZE)
+                parts = received_data.decode('utf-8').split(';')
+                for i_device in range(len(active_devices)):
+                    active_devices[i_device] = int(parts[i_device])
+                for i_outlet in range(len(active_devices), len(active_outlets) + len(active_devices)):
+                    active_outlets[i_outlet - len(active_devices)] = int(parts[i_outlet])
+                water_level = int(parts[len(active_outlets) + len(active_devices)])
+                water_parameters[0] = int(parts[-2])
+                water_parameters[1] = int(parts[-1])
+
+                print(active_devices, active_outlets, water_level, water_parameters)
+
+
 
         except Exception as e:
             print(f"Error: {e}")
-
-        finally:
-            server.close()
-
-        # TESTING
-        # time.sleep(0.1)
-        # print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
-        # print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
-        # print('Water parameters: ', water_parameters)
-        print(parameter_change)
+            thread_socket.join()
+            exit(1)
 
 
 stop_event = threading.Event()
