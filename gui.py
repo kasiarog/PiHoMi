@@ -292,10 +292,6 @@ def make_gui():
         sockets_height = draw_sockets(x_devices, y_devices, padding, active_sockets, draw_image_socket)
         irrigation_width = draw_irrigation(x_devices, y_devices, padding, sockets_height, water_level)
         draw_clock(x_devices, y_devices, padding, irrigation_width, sockets_height)
-        # window.after(1000, update_window)
-
-        # print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
-        # print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
 
     draw_image_icon = []
     draw_image_checkbox = []
@@ -326,21 +322,47 @@ def make_gui():
     window.mainloop()
 
 
-def make_connection():
-    while not stop_event.is_set():
-        # server = socket(AF_INET, SOCK_STREAM)
-        # server.connect(ADDRESS)
-        #
-        # server.close()
+def server_connection():
+    global active_devices, active_sockets, water_level, water_parameters
 
-        # FOR TESTING
-        print('serweeeeer')
-        time.sleep(3)
+    while not stop_event.is_set():
+        try:
+            with socket(AF_INET, SOCK_STREAM) as server:
+                server.connect(ADDRESS)
+
+                data = str(server.recv(BUFF_SIZE))
+
+                # update data received from server
+                parts = data.decode('utf-8')
+                if len(parts) == 8:
+                    for i_device in range(len(active_devices)):
+                        active_devices[i_device] = int(data[i_device])
+                    for i_socket in range(len(active_devices), len(active_sockets) + len(active_devices)):
+                        active_sockets[i_socket] = int(data[i_socket])
+                    water_level = int(data[-1])
+                else:
+                    print("Invalid data format received from the server.")
+
+                # update water_parameters to server
+                data_to_send = "{value1};{value2}".format(value1=water_parameters[0], value2=water_parameters[1])
+                server.send(data_to_send.encode('utf-8'))
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+        finally:
+            server.close()
+
+        # TESTING
+        time.sleep(2)
+        print("Irrigation frequency: ", water_parameters[0], "\nWater volume: ", water_parameters[1])
+        print('Active devices: ', active_devices, '\nActive sockets: ', active_sockets)
+        print('Water parameters: ', water_parameters)
 
 
 stop_event = threading.Event()
 
-thread_socket = threading.Thread(target=make_connection)
+thread_socket = threading.Thread(target=server_connection)
 thread_socket.start()
 
 make_gui()
