@@ -310,10 +310,10 @@ def make_gui():
     window = mtTkinter.Tk()
     window.protocol("WM_DELETE_WINDOW", on_closing)  # closing the window stops a thread for GUI
     window.title('PiHoMi')
-    window.geometry("950x625")
+    window.geometry("950x600")
     window.resizable(False, False)
     window.configure(bg=dark)
-    window_size = [950, 625]
+    window_size = [950, 600]
 
     canvas = Canvas(
         window,
