@@ -1,13 +1,13 @@
 # PiHoMi
-********Projekt mini Smart Home********
+********Mini Smart Home********
 
-Celem projektu jest realizacja systemu inteligentnego domu, składającego się z inteligentnego lustra, które bedzie pełniło funkcję dashboarda systemu, urządzenia do automatycznego podlewania roślin, dużego zegara naściennego zsynchornizowanego z czasem internetowym, oraz gniazdek, które umożliwią podłączenie i zdalne sterowanie dowolnymi urządzeniami, takimi jak lampy, grzejniki, urządzenia kuchenne, itd.
+The aim of the project is to implement a smart home system consisting of an intelligent mirror that will act as a system dashboard, a device for automatic watering of plants, a large wall clock synchronized with Internet time, and sockets that will enable connection and remote control of any devices, such as lamps, radiators, kitchen appliances, etc.
 
 ******Wykorzystane urządzenia******
  - Raspberry Pi 4B
  - Arduino Uno
- - zegar produkcji własnej
- - czujnik poziomu wody produkcji własnej
- - pompa
- - moduł przekaźników elektromagnetycznych
- - gniazda elektryczne
+ - clock of own production
+ - water level sensor of own production
+ - pump
+ - electromagnetic relay module
+ - electric sockets
