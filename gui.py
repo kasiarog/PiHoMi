@@ -304,7 +304,7 @@ def make_gui():
                     water_parameters[1] = int(parts[-1])
 
                     # print(active_devices, active_outlets, water_level, water_parameters)
-                    # update_window()
+                    draw_dashboard()
                     time.sleep(1)
 
             except Exception as e:
