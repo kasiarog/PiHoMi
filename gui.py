@@ -238,7 +238,7 @@ def make_gui():
         return irrigation_width
 
     # CLOCK
-    def draw_clock(padding, irrigation_width, outlets_height):
+    def draw_clock(irrigation_width, outlets_height):
         sizes = [window_size[0] - (350 + 2 * padding + 50) - irrigation_width - padding, outlets_height]
         coords = [350 + 3 * padding + irrigation_width, 150 + outlets_height + padding]
 
