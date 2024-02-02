@@ -42,12 +42,14 @@ water_volumes = [20, 50, 100, 150, 200, 250, 500]
 parameter_change = 'x'  # string (w formacie 'x1') przechowuje zmianę wartości parametru (np. gdy włączamy gniazdko 4 to parameter_change = 's4'
 initial_request = 0
 
-
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 
 def make_gui():
+
+    main_canvas = None
+
     def on_closing():
         stop_event.set()
         window.destroy()
@@ -305,7 +307,8 @@ def make_gui():
                     water_parameters[1] = int(parts[-1])  # volume of water
 
                     # print(active_devices, active_outlets, water_level, water_parameters)
-                    draw_dashboard()
+                    if main_canvas is not None:
+                        draw_dashboard()
                     time.sleep(1)
 
             except Exception as e:
