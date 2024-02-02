@@ -277,6 +277,16 @@ def make_gui():
     def server_connection():
         global active_devices, active_outlets, water_level, water_parameters, parameter_change
 
+        def update_global_params(data):
+            global active_devices, active_outlets, water_level, water_parameters, parameter_change
+            for i_device in range(len(active_devices)):
+                active_devices[i_device] = int(data[i_device])
+            for i_outlet in range(len(active_devices), len(active_devices) + len(active_outlets)):
+                active_outlets[i_outlet - len(active_devices)] = int(data[i_outlet])
+            water_level = int(data[len(active_outlets) + len(active_devices)])
+            water_parameters[0] = float(data[-2])  # frequency of watering
+            water_parameters[1] = int(data[-1])  # volume of water
+
         try:
             server: socket = socket(AF_INET, SOCK_STREAM)
             server.connect(ADDRESS)
@@ -286,6 +296,9 @@ def make_gui():
             thread_socket.join()
             exit(1)
 
+        send_to_check_updates = 'x' + '\n'
+        server.send(send_to_check_updates.encode('utf-8'))
+        received_from_request = server.recv(BUFF_SIZE)
         while not stop_event.is_set():
             try:
                 # update changes made by user to server
@@ -297,18 +310,22 @@ def make_gui():
 
                     received_data = server.recv(BUFF_SIZE)
                     parts = received_data.decode('utf-8').split(';')
-                    for i_device in range(len(active_devices)):
-                        active_devices[i_device] = int(parts[i_device])
-                    for i_outlet in range(len(active_devices), len(active_devices) + len(active_outlets)):
-                        active_outlets[i_outlet - len(active_devices)] = int(parts[i_outlet])
-                    water_level = int(parts[len(active_outlets) + len(active_devices)])
-                    water_parameters[0] = float(parts[-2])  # frequency of watering
-                    water_parameters[1] = int(parts[-1])  # volume of water
+                    update_global_params(parts)
 
-                    # print(active_devices, active_outlets, water_level, water_parameters)
                     if main_canvas is not None:
                         draw_dashboard()
                     time.sleep(1)
+
+                send_to_check_updates = 'x' + '\n'
+                server.send(send_to_check_updates.encode('utf-8'))
+                current_received = server.recv(BUFF_SIZE)
+                if current_received != received_from_request:
+                    parts = current_received.decode('utf-8').split(';')
+
+                    update_global_params(parts)
+                    draw_dashboard()
+                    received_from_request = current_received
+                time.sleep(1)
 
             except Exception as e:
                 print(f"Error: {e}")
