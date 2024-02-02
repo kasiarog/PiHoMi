@@ -13,7 +13,7 @@ ASSETS_PATH = OUTPUT_PATH / Path(r"assets")
 
 # NETWORK CONNECTION
 PORT = 3141
-HOST = "192.168.1.73"
+HOST = "192.168.1.74"
 BUFF_SIZE = 64
 ADDRESS = (HOST, PORT)
 
@@ -150,8 +150,9 @@ def make_gui():
         for i in range(4):
             def on_button_click(event, index=i):
                 global parameter_change
-                parameter_change = ''
-                parameter_change = "o{outlet_num}".format(outlet_num=index + 1)
+                if active_devices[2]:
+                    parameter_change = ''
+                    parameter_change = "o{outlet_num}".format(outlet_num=index + 1)
 
             image = draw_image_array(
                 outlets_canvas,
@@ -297,11 +298,11 @@ def make_gui():
                     parts = received_data.decode('utf-8').split(';')
                     for i_device in range(len(active_devices)):
                         active_devices[i_device] = int(parts[i_device])
-                    for i_outlet in range(len(active_devices), len(active_outlets) + len(active_devices)):
+                    for i_outlet in range(len(active_devices), len(active_devices) + len(active_outlets)):
                         active_outlets[i_outlet - len(active_devices)] = int(parts[i_outlet])
                     water_level = int(parts[len(active_outlets) + len(active_devices)])
-                    water_parameters[0] = float(parts[-2])
-                    water_parameters[1] = int(parts[-1])
+                    water_parameters[0] = float(parts[-2])  # frequency of watering
+                    water_parameters[1] = int(parts[-1])  # volume of water
 
                     # print(active_devices, active_outlets, water_level, water_parameters)
                     draw_dashboard()
