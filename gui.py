@@ -40,7 +40,6 @@ water_frequency_titles = [['4 times a day', 0.25], ['2 times a day', 0.5], ['1 t
                           ['every 4 days', 4], ['every week', 7], ['every 2 weeks', 14]]
 water_volumes = [20, 50, 100, 150, 200, 250, 500]
 parameter_change = 'x'  # string (w formacie 'x1') przechowuje zmianę wartości parametru (np. gdy włączamy gniazdko 4 to parameter_change = 's4'
-initial_request = 0
 
 
 def relative_to_assets(path: str) -> Path:
