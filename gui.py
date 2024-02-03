@@ -289,7 +289,8 @@ def make_gui():
 
         except Exception as e:
             print(f"Error: {e}")
-            thread_socket.join()
+            # thread_socket.join()
+            stop_event.set()
             exit(1)
 
         send_to_check_updates = 'x' + '\n'
@@ -324,7 +325,8 @@ def make_gui():
 
             except Exception as e:
                 print(f"Error: {e}")
-                thread_socket.join()
+                # thread_socket.join()
+                stop_event.set()
                 exit(1)
 
     stop_event = threading.Event()
@@ -359,4 +361,7 @@ def make_gui():
     window.mainloop()
 
 
-make_gui()
+try:
+    make_gui()
+except KeyboardInterrupt:
+    sys.exit(0)
