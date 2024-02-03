@@ -39,14 +39,14 @@ water_parameters = [0, 0]  # [frequency of watering, water volume]
 water_frequency_titles = [['4 times a day', 0.25], ['2 times a day', 0.5], ['1 time a day', 1], ['every 2 days', 2],
                           ['every 4 days', 4], ['every week', 7], ['every 2 weeks', 14]]
 water_volumes = [20, 50, 100, 150, 200, 250, 500]
-parameter_change = 'x'  # string (w formacie 'x1') przechowuje zmianę wartości parametru (np. gdy włączamy gniazdko 4 to parameter_change = 's4'
+parameter_change = 'x'  # string (w formacie 'x1') przechowuje żądanie zmiany wartości parametru (np. gdy włączamy gniazdko 4 to parameter_change = 's4'
+
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 
 def make_gui():
-
     main_canvas = None
 
     def on_closing():
@@ -104,13 +104,12 @@ def make_gui():
         for i in range(3):
             def on_button_click(event, index=i):
                 global parameter_change
-                parameter_change = ''
                 parameter_change = "{device}".format(device=devices_titles[index][0].lower())
 
             container = draw_rectangle(
                 devices_canvas,
                 padding, gap_after_text + i * height_device_place + i * padding,
-                sizes[0] - padding, + gap_after_text + (i+1) * height_device_place + i * padding,
+                         sizes[0] - padding, + gap_after_text + (i + 1) * height_device_place + i * padding,
                 semi_semi_dark, dark
             )
 
@@ -152,7 +151,6 @@ def make_gui():
             def on_button_click(event, index=i):
                 global parameter_change
                 if active_devices[2]:
-                    parameter_change = ''
                     parameter_change = "o{outlet_num}".format(outlet_num=index + 1)
 
             image = draw_image_array(
@@ -164,7 +162,7 @@ def make_gui():
             text = draw_text(
                 outlets_canvas,
                 i * (padding - 10) + i * 90 + 62, 4 * padding + 55,
-                text="{i}. enabled".format(i=i+1) if pactive_outlets[i] == 1 else "{i}. disabled".format(i=i+1),
+                text="{i}. enabled".format(i=i + 1) if pactive_outlets[i] == 1 else "{i}. disabled".format(i=i + 1),
                 color=semi_light if pactive_outlets[i] == 1 else semi_semi_light,
                 size=10
             )
@@ -211,13 +209,11 @@ def make_gui():
         def change_frequency(freq):
             global water_parameters, parameter_change
             water_parameters[0] = freq
-            parameter_change = ''
             parameter_change = "f{frequency_value}".format(frequency_value=freq)
 
         def change_volume(v):
             global water_parameters, parameter_change
             water_parameters[1] = v
-            parameter_change = ''
             parameter_change = "v{volume_value}".format(volume_value=v)
 
         def popup(e):
@@ -233,7 +229,7 @@ def make_gui():
         menu.add_command(label="Water volume", state="disabled", activebackground=menu.cget("background"))
         menu.add_separator()
         for volume in water_volumes:
-            menu.add_command(label=str(volume)+'ml', command=lambda freq=volume: change_volume(freq))
+            menu.add_command(label=str(volume) + 'ml', command=lambda freq=volume: change_volume(freq))
 
         irrigation_canvas.bind("<Button-3>", popup)
 
@@ -305,7 +301,6 @@ def make_gui():
                 if len(parameter_change) != 0:
                     data_to_send = parameter_change + '\n'
                     server.send(data_to_send.encode('utf-8'))
-                    print(parameter_change)
                     parameter_change = ''
 
                     received_data = server.recv(BUFF_SIZE)
@@ -365,6 +360,3 @@ def make_gui():
 
 
 make_gui()
-
-# thread_gui = threading.Thread(target=make_gui)
-# thread_gui.start()
