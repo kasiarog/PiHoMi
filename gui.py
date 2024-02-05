@@ -1,3 +1,6 @@
+# TODO zrobić dobry handling kiedy nie ma połączenia z serwerem (zamiast thread.joina())
+# TODO zapobiec widocznemu przerysowywaniu ekranu kiedy się coś kliknie
+
 from pathlib import Path
 from tkinter import *
 from mttkinter import mtTkinter
@@ -273,6 +276,13 @@ def make_gui():
     def server_connection():
         global active_devices, active_outlets, water_level, water_parameters, parameter_change
 
+        def popup_no_connection():
+            popup = Toplevel(window)
+            popup.geometry("300x250")
+            popup.title("Server connection error")
+            label = Label(popup, text="Failed to connect to the server", font=('calibri', 15), fg='red')
+            label.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+
         def update_global_params(data):
             global active_devices, active_outlets, water_level, water_parameters, parameter_change
             for i_device in range(len(active_devices)):
@@ -285,12 +295,14 @@ def make_gui():
 
         try:
             server: socket = socket(AF_INET, SOCK_STREAM)
+            server.settimeout(3)
             server.connect(ADDRESS)
 
         except Exception as e:
             print(f"Error: {e}")
             # thread_socket.join()
             stop_event.set()
+            popup_no_connection()
             exit(1)
 
         send_to_check_updates = 'x' + '\n'
