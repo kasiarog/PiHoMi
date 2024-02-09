@@ -278,10 +278,18 @@ def make_gui():
 
         def popup_no_connection():
             popup = Toplevel(window)
-            popup.geometry("300x250")
-            popup.title("Server connection error")
-            label = Label(popup, text="Failed to connect to the server", font=('calibri', 15), fg='red')
-            label.place(relx = 0.5, rely = 0.5, anchor = CENTER)
+            root_x = window.winfo_rootx()
+            root_y = window.winfo_rooty()
+            win_x = root_x + 325
+            win_y = root_y + 175
+
+            popup.geometry("300x250"f'+{win_x}+{win_y}')
+            popup.title("No server connection")
+            popup.protocol("WM_DELETE_WINDOW", on_closing)  # closing the window stops a thread for GUI
+            label1 = Label(popup, text="Failed ", font=('calibri bold', 37), fg='red')
+            label2 = Label(popup, text="to connect to server \n :<", font=('calibri', 15), fg='black')
+            label1.place(relx = 0.52, rely = 0.35, anchor = CENTER)
+            label2.place(relx = 0.5, rely = 0.6, anchor = CENTER)
 
         def update_global_params(data):
             global active_devices, active_outlets, water_level, water_parameters, parameter_change
